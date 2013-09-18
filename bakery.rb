@@ -9,18 +9,19 @@ class Product
     @name = @element.find_element(:class => "title").text
     @price = @element.find_element(:class => "price").text.to_i
     owned = @element.find_elements(:class => "owned")
-    @quantity = 0
-    @quantity = owned.first.text.to_i unless owned.empty?
+    @quantity = owned.empty? ? 0 : owned.first.text.to_i
   end
 
   def buy
     @element.click
+    # when you bought any product, the document will be refreshed.
+    # So wait for it
     sleep 0.1
   end
 
 end
 
-class CookieBaker
+class CookieBakery
 
   def initialize
     @driver = Selenium::WebDriver.for :chrome
@@ -50,12 +51,11 @@ class CookieBaker
           @wishlist[element] = product
         end
       end
-      count = 0
       count = get_cookie_count unless @wishlist.empty?
       @wishlist.each do |key, value|
         if value.price * (value.quantity ** 2) < count
           value.buy
-          @wishlist = @wishlist.clear
+          @wishlist.clear
           break
         end
       end
@@ -69,5 +69,5 @@ class CookieBaker
 
 end
 
-baker = CookieBaker.new
-baker.bake
+bakery = CookieBakery.new
+bakery.bake
