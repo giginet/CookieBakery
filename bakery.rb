@@ -6,9 +6,9 @@ class Product
 
   def initialize(element)
     @element = element
-    @name = @element.find_element(:class => "title").text
-    @price = @element.find_element(:class => "price").text.to_i
-    owned = @element.find_elements(:class => "owned")
+    @name = @element.find_element(:class, :title).text
+    @price = @element.find_element(:class, :price).text.to_i
+    owned = @element.find_elements(:class, :owned)
     @quantity = owned.empty? ? 0 : owned.first.text.to_i
   end
 
@@ -33,10 +33,10 @@ class CookieBakery
 
   def fetch_elements
     @big_cookie = @products = nil
-    wait = Selenium::WebDriver::Wait.new(:timeout => 10)
+    wait = Selenium::WebDriver::Wait.new(timeout: 10)
     wait.until { 
-      @big_cookie = @driver.find_element(:id => "bigCookie")
-      @products = @driver.find_element(:id => "products")
+      @big_cookie = @driver.find_element(:id, :bigCookie)
+      @products = @driver.find_element(:id, :products)
     }
   end
 
@@ -45,7 +45,7 @@ class CookieBakery
     while true
       next if @big_cookie.nil?
       @big_cookie.click
-      @products.find_elements(:class => "enabled").reverse.each do |element|
+      @products.find_elements(:class, :enabled).reverse.each do |element|
         unless @wishlist.has_key?(element)
           product = Product.new(element)
           @wishlist[element] = product
