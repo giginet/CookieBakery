@@ -1,6 +1,25 @@
 # -*- coding: utf-8 -*-
 require 'selenium-webdriver'
 
+class Product
+  attr_reader :name, :price, :quantity
+
+  def initialize(element)
+    @element = element
+    @name = @element.find_element(:class => "title").text
+    @price = @element.find_element(:class => "price").text.to_i
+    owned = @element.find_elements(:class => "owned")
+    @quantity = 0
+    @quantity = owned.first.text.to_i unless owned.empty?
+  end
+
+  def buy
+    @element.click
+    sleep 0.1
+  end
+
+end
+
 class CookieBaker
 
   def initialize
@@ -15,7 +34,7 @@ class CookieBaker
     wait = Selenium::WebDriver::Wait.new(:timeout => 10)
     wait.until { 
       @big_cookie = @driver.find_element(:id => "bigCookie")
-      @products = @driver.find_elements(:class => "product")
+      @products = @driver.find_element(:id => "products")
     }
   end
 
@@ -24,19 +43,23 @@ class CookieBaker
     while true
       next if @big_cookie.nil?
       @big_cookie.click
-      @products.each do |product|
-        classes = product.attribute('class').split()
-        if classes.include?('enabled')
-          product_name = product.find_element(:class => "title").text
-          puts "use #{product_name}"
-          product.click
-          wait = Selenium::WebDriver::Wait.new(:timeout => 10)
-          sleep 0.1
+      @products.find_elements(:class => "enabled").reverse.each do |element|
+        product = Product.new(element)
+        if product.price * (product.quantity ** 2) < get_cookie_count
+          product.buy
           fetch_elements
+          puts "Buy #{product.name}"
+          break
         end
       end
     end 
   end
+
+  def get_cookie_count
+    /^([0-9]+)/ =~ @driver.find_element(:id, :cookies).text
+    $1.to_i
+  end
+
 end
 
 baker = CookieBaker.new
