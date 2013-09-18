@@ -27,6 +27,7 @@ class CookieBaker
     @driver.navigate.to "http://orteil.dashnet.org/cookieclicker/"
     @driver.manage.window.move_to(0, 0)
     @driver.manage.window.resize_to(1024, 768)
+    @wishlist = {}
   end
 
   def fetch_elements
@@ -44,11 +45,17 @@ class CookieBaker
       next if @big_cookie.nil?
       @big_cookie.click
       @products.find_elements(:class => "enabled").reverse.each do |element|
-        product = Product.new(element)
-        if product.price * (product.quantity ** 2) < get_cookie_count
-          product.buy
-          fetch_elements
-          puts "Buy #{product.name}"
+        unless @wishlist.has_key?(element)
+          product = Product.new(element)
+          @wishlist[element] = product
+        end
+      end
+      count = 0
+      count = get_cookie_count unless @wishlist.empty?
+      @wishlist.each do |key, value|
+        if value.price * (value.quantity ** 2) < count
+          value.buy
+          @wishlist = @wishlist.clear
           break
         end
       end
